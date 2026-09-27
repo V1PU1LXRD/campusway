@@ -1,0 +1,801 @@
+/* ============================================================
+   CampusWay — components ("Campus Navigation Lab")
+   Sections: header · hero · layout · map · controls · algorithm
+   cards · directions · summary · alerts · dialog · effects
+   ============================================================ */
+
+/* ---------------- 1. app header (sticky) ---------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.site-header__inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.brand__mark {
+  flex: none;
+  color: var(--color-primary);
+}
+
+.brand__name {
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-primary-strong);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.site-header__actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* ---------------- 2. buttons ---------------- */
+/* theme toggle: sun icon in light mode, moon in dark mode */
+.theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--speed-fast) ease, border-color var(--speed-fast) ease,
+    box-shadow var(--speed-fast) ease;
+}
+.btn:hover { border-color: var(--color-primary); box-shadow: var(--shadow-sm); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.btn:disabled:hover { border-color: var(--color-border-strong); }
+
+.btn--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-strong);
+  border-color: var(--color-primary-strong);
+}
+
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+.btn--ghost:hover { background: var(--color-surface-2); box-shadow: none; }
+
+.btn--icon {
+  padding: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+/* ---------------- 3. hero / onboarding ---------------- */
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.hero__card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero__card h1 {
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+  max-width: 24ch;
+}
+
+.hero__card > p {
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+.hero__steps {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-5) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  counter-reset: step;
+}
+
+.hero__steps li {
+  counter-increment: step;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.hero__steps li::before {
+  content: counter(step);
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary-strong);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+}
+
+/* hero text reveal (the one "React Bits style" entrance) */
+.reveal > * {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: reveal-up 480ms ease forwards;
+}
+.reveal > *:nth-child(2) { animation-delay: 90ms; }
+.reveal > *:nth-child(3) { animation-delay: 180ms; }
+@keyframes reveal-up {
+  to { opacity: 1; transform: none; }
+}
+
+/* collapsed status bar (hero after route selection) */
+.status-bar {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.status-bar__text {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+
+.status-bar__text strong { color: var(--color-text); }
+
+.collapsible {
+  overflow: hidden;
+  transition: grid-template-rows var(--speed) ease, opacity var(--speed) ease;
+}
+.collapsible--collapsed {
+  display: none;
+}
+
+/* ---------------- 4. layout ---------------- */
+.layout {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--space-5);
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.panel__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.panel__body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---------------- 5. status chip ---------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+}
+.chip--active {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+.chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.chip--active .chip__dot { animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---------------- 6. map ---------------- */
+.map-frame {
+  padding: var(--space-3);
+}
+
+#map {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: linear-gradient(165deg, var(--map-bg-1), var(--map-bg-2));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* per-algorithm exploration colors (swapped by app.js via js/ui/theme) */
+.visit-dijkstra { --visit-color: var(--visit-dijkstra); }
+.visit-astar    { --visit-color: var(--visit-astar); }
+.visit-bfs      { --visit-color: var(--visit-bfs); }
+
+.edge { stroke: var(--map-edge); stroke-width: 4; stroke-linecap: round; }
+.edge.steps {
+  stroke: var(--map-edge-steps);
+  stroke-dasharray: 2 9;         /* pattern, not color, carries meaning */
+}
+.edge.closed {
+  stroke: var(--map-edge-closed);
+  stroke-dasharray: 8 7;         /* distinct pattern from steps */
+  opacity: 0.9;
+}
+
+.route-line {
+  fill: none;
+  stroke: var(--map-route);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* single draw-in when the final route appears */
+.route-line.is-drawing {
+  transition: stroke-dashoffset 700ms ease-out;
+}
+
+.visit-ring {
+  fill: none;
+  stroke: var(--visit-color);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring-pop 520ms ease-out forwards;
+}
+@keyframes ring-pop {
+  0%   { opacity: 0.85; transform: scale(0.45); }
+  100% { opacity: 0;    transform: scale(2.0); }
+}
+
+.node { cursor: pointer; outline: none; }
+.node-halo { fill: transparent; }
+.node-circle {
+  fill: var(--map-node-fill);
+  stroke: var(--map-node-stroke);
+  stroke-width: 2;
+  transition: fill var(--speed-fast) ease, stroke var(--speed-fast) ease;
+}
+.node:hover .node-circle { stroke: var(--map-node-hover); stroke-width: 3; }
+.node:focus-visible .node-circle { stroke: var(--color-focus); stroke-width: 3.5; }
+.node.visited .node-circle { fill: var(--color-primary-soft); stroke: var(--color-primary); }
+.node.is-source .node-circle { fill: var(--color-accent); stroke: var(--map-node-source-stroke); }
+.node.is-target .node-circle { fill: var(--map-node-target); stroke: var(--map-node-target-stroke); }
+
+.node-label {
+  fill: var(--color-text);
+  font-size: 15px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--map-label-halo); /* theme-aware: light halo on light map, dark on dark */
+  stroke-width: 3px;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+/* ---------------- 7. legend popover ---------------- */
+/* ---------------- 7. legend (native disclosure below the map) -------- */
+.legend-details summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  transition: background var(--speed-fast) ease, border-color var(--speed-fast) ease;
+}
+.legend-details summary::-webkit-details-marker { display: none; }
+.legend-details summary:hover { background: var(--color-primary-soft); border-color: var(--color-primary-border); }
+.legend-details[open] summary { background: var(--color-primary-soft); border-color: var(--color-primary-border); }
+.legend-details__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+.legend-row { display: flex; align-items: center; gap: var(--space-2); }
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid var(--color-swatch-border);
+}
+.swatch--line { height: 4px; border-radius: 2px; border: none; }
+.swatch--dash { background: repeating-linear-gradient(90deg, var(--map-edge-steps) 0 3px, transparent 3px 10px); }
+.swatch--closed { background: repeating-linear-gradient(90deg, var(--map-edge-closed) 0 7px, transparent 7px 14px); }
+
+/* ---------------- 8. route setup ---------------- */
+.sel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.sel-box {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+.sel-box .k {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+.sel-box .v {
+  display: block;
+  font-weight: 650;
+  font-size: 0.92rem;
+  min-height: 1.35em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sel-box .v.is-placeholder { color: var(--color-text-muted); font-weight: 500; font-style: italic; }
+
+.profile-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+/* selected radio-card state for the route profile toggle */
+.mode-btn[aria-checked="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+.profile-note {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------------- 9. algorithm cards ---------------- */
+.algo-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.algo-card {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  transition: border-color var(--speed-fast) ease, box-shadow var(--speed-fast) ease;
+}
+.algo-card:hover { border-color: var(--color-border-strong); }
+
+/* selected-card treatment: soft ring + left accent bar */
+.algo-card.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-md);
+}
+.algo-card.is-selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-primary);
+}
+
+.algo-card__btn {
+  display: grid;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  gap: 2px;
+  border-radius: inherit;
+}
+
+.algo-card__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.algo-card__name { font-weight: 700; font-size: 0.95rem; }
+.algo-card__tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.algo-card.is-selected .algo-card__tag {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  border-color: var(--color-primary-border);
+}
+
+.algo-card__selected {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.algo-card__metrics {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-1);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+.algo-card__metrics strong {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* metric value transition (restrained "React Bits style" number tween) */
+.metric-value {
+  display: inline-block;
+  transition: opacity var(--speed-fast) ease, transform var(--speed-fast) ease;
+}
+.metric-value.is-updating { opacity: 0; transform: translateY(4px); }
+
+/* ---------------- 10. directions & summary ---------------- */
+details.steps-detail summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+details.steps-detail summary::-webkit-details-marker { display: none; }
+details.steps-detail summary::after {
+  content: "";
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
+  transform: rotate(45deg);
+  transition: transform var(--speed-fast) ease;
+}
+details.steps-detail[open] summary::after { transform: rotate(225deg); }
+
+.steps-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
+  display: grid;
+  gap: var(--space-2);
+  counter-reset: dir;
+}
+.steps-list li {
+  counter-increment: dir;
+  display: flex;
+  gap: var(--space-3);
+  font-size: 0.9rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+}
+.steps-list li::before {
+  content: counter(dir);
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-4);
+  font-size: 0.88rem;
+}
+.summary-grid dt { color: var(--color-text-muted); }
+.summary-grid dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+
+.why-route {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ---------------- 11. alerts ---------------- */
+.alert {
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+.alert--error {
+  background: var(--color-danger-soft);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
+}
+.alert--info {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary-strong);
+}
+
+/* ---------------- 12. dialog (About Algorithms) ---------------- */
+.dialog {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(80vh, 720px);
+}
+.dialog::backdrop {
+  background: var(--color-backdrop);
+}
+.dialog__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+}
+.dialog__header h2 { font-size: 1.05rem; }
+.dialog__body {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  overflow-wrap: anywhere;
+}
+.dialog__body h3 { font-size: 0.95rem; margin-top: var(--space-4); }
+.dialog__body h3:first-child { margin-top: 0; }
+.dialog__body p, .dialog__body li { font-size: 0.9rem; color: var(--color-text-muted); }
+.dialog__body p strong, .dialog__body li strong { color: var(--color-text); }
+.dialog__body ul { padding-left: var(--space-5); display: grid; gap: 4px; }
+.dialog code {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+/* ---------------- 13. closed-walkway controls ---------------- */
+.closed-controls {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.closed-controls select {
+  flex: 1;
+  min-width: 160px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.87rem;
+}
+.closed-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.closed-chip {
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger-text);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.closed-chip:hover { border-color: var(--color-danger); }
+
+/* ---------------- 14. footer ---------------- */
+.site-footer {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ---------------- 15. responsive: 320px -> desktop ----------------
+   The SVG viewBox is 1000x700 user units, so on small screens everything
+   inside it (labels included) scales down. These rules compensate: bigger
+   in-SVG text, slight overflow allowance absorbed by frame padding, and
+   16px form controls to stop iOS zoom-on-focus. */
+
+/* ----- tablets / small laptops ----- */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }        /* stack: map first */
+  .brand__badge { display: none; }
+}
+
+/* ----- phones ----- */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+
+  .site-header { position: static; }             /* reclaim vertical space */
+  .site-header__inner { padding: var(--space-3) var(--space-4); }
+  .hero, .status-bar, .layout { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .layout { padding-top: var(--space-4); gap: var(--space-3); }
+
+  .hero__card { padding: var(--space-4); }
+  .hero__steps { gap: var(--space-3); }
+
+  .panel__body { padding: var(--space-3); }
+  .panel__header { padding: var(--space-3); }
+
+  .sel-grid, .profile-toggle { grid-template-columns: 1fr; }
+
+  /* header actions become icon-only; title text moves to aria-labels */
+  .site-header__actions .btn span { display: none; }
+  .site-header__actions .btn { padding: 8px; width: 36px; height: 36px; }
+
+  /* map: larger in-SVG labels so they stay readable when scaled down */
+  .map-frame { padding: var(--space-2); }
+  #map { overflow: visible; }                    /* edge labels may spill a few px into the frame padding */
+  .node-label { font-size: 34px; stroke-width: 5px; }
+  .node-circle { r: 18; }
+  .node-halo { r: 36; }
+
+  /* 16px controls prevent iOS Safari focus zoom */
+  .closed-controls select { font-size: 16px; }
+
+  .dialog__header { padding: var(--space-3) var(--space-4); }
+  .dialog__body { padding: var(--space-3) var(--space-4) var(--space-4); }
+}
+
+/* ----- small phones (320-380px) ----- */
+@media (max-width: 380px) {
+  .brand__name { font-size: 1rem; }
+  .hero__steps { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+  .btn { padding: 8px 12px; }
+  .algo-card__metrics { gap: var(--space-3); }
+}
+
+/* ----- short landscape phones (e.g. 844x390) ----- */
+@media (max-height: 480px) and (orientation: landscape) {
+  .hero__card { padding: var(--space-3) var(--space-4); }
+  .hero__steps { margin-top: var(--space-3); }
+  .site-header { position: static; }
+}
+
+/* ----- large desktops: cap content, let the map breathe ----- */
+@media (min-width: 1440px) {
+  :root { --maxw: 1280px; }
+}
+
+/* ---------------- 16. reduced motion: everything static ---------------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal > * { opacity: 1; transform: none; animation: none; }
+  .chip--active .chip__dot { animation: none; }
+  .visit-ring { animation: none; opacity: 0.55; transform: none; }
+  .route-line.is-drawing { transition: none; }
+  .metric-value { transition: none; }
+  .collapsible { transition: none; }
+}

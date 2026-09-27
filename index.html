@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f7fa" />
+  <meta name="description" content="CampusWay — compare how Dijkstra, BFS and A* find routes across an interactive campus graph. A DSA visualizer built with vanilla JavaScript." />
+  <title>CampusWay — DSA Route Visualizer</title>
+  <script>
+    // Apply the saved (or OS-preferred) theme BEFORE first paint to avoid a
+    // light flash for dark-OS users. Full logic lives in js/ui/theme.js.
+    (function () {
+      try {
+        var t = localStorage.getItem('campusway-theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/globals.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ==================== app header ==================== -->
+  <header class="site-header">
+    <div class="site-header__inner">
+      <div class="brand">
+        <!-- geometric route/compass logo mark -->
+        <svg class="brand__mark" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" focusable="false">
+          <circle cx="15" cy="15" r="12.5" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M15 5.5 L18.2 13 L15 11.4 L11.8 13 Z" fill="currentColor" />
+          <path d="M15 24.5 L11.8 17 L15 18.6 L18.2 17 Z" fill="currentColor" opacity="0.45" />
+        </svg>
+        <span class="brand__name">CampusWay</span>
+        <span class="badge brand__badge">DSA Route Visualizer</span>
+      </div>
+
+      <nav class="site-header__actions" aria-label="Application actions">
+        <button type="button" class="btn btn--ghost" id="btnAbout" aria-haspopup="dialog">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.5" />
+            <path d="M8 7.2v4" stroke-linecap="round" />
+            <circle cx="8" cy="4.9" r="0.9" fill="currentColor" stroke="none" />
+          </svg>
+          <span>About Algorithms</span>
+        </button>
+        <button type="button" class="btn" id="btnResetHeader">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" />
+            <path d="M13.7 1.8v2.7h-2.7" />
+          </svg>
+          <span>Reset route</span>
+        </button>
+        <button type="button" class="btn btn--icon theme-toggle" aria-label="Switch to dark theme">
+          <!-- sun (light mode) / moon (dark mode) -->
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="8" cy="8" r="3.2" />
+            <path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M12.8 3.2l-1.1 1.1M4.3 11.7l-1.1 1.1" />
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z" />
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ==================== hero / onboarding ==================== -->
+    <div class="hero" id="heroWrap">
+      <section class="hero__card reveal" aria-labelledby="heroTitle">
+        <h1 id="heroTitle">Find the smartest path across campus.</h1>
+        <p>
+          Choose a start building and destination, then compare how Dijkstra, BFS and A*
+          explore the same campus graph.
+        </p>
+        <ol class="hero__steps">
+          <li>Select start</li>
+          <li>Select destination</li>
+          <li>Compare routes</li>
+        </ol>
+      </section>
+    </div>
+
+    <!-- slim status bar shown after the hero collapses -->
+    <div class="status-bar collapsible collapsible--collapsed" id="statusBar" hidden>
+      <span class="chip" id="statusChip">
+        <span class="chip__dot" aria-hidden="true"></span>
+        <span id="statusChipText">Select a start point</span>
+      </span>
+      <p class="status-bar__text" id="statusText"></p>
+    </div>
+
+    <!-- ==================== main grid ==================== -->
+    <div class="layout">
+      <!-- ---------- map panel ---------- -->
+      <section class="panel" aria-labelledby="mapTitle" id="mapPanel">
+        <div class="panel__header">
+          <h2 class="panel__title" id="mapTitle">Campus Map</h2>
+          <span class="chip" id="mapChip">
+            <span class="chip__dot" aria-hidden="true"></span>
+            <span id="mapChipText">Select a start point</span>
+          </span>
+
+        </div>
+
+        <div class="map-frame">
+          <div id="map"></div>
+
+
+        </div>
+
+        <div class="panel__body">
+          <!-- Legend lives BELOW the map so it never covers the SVG -->
+          <details class="legend-details">
+            <summary>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <rect x="2" y="3" width="12" height="10" rx="2" />
+                <path d="M5 6.5h2M5 9.5h4" stroke-linecap="round" />
+              </svg>
+              Map legend
+            </summary>
+            <div class="legend-details__grid">
+              <div class="legend-row"><span class="swatch" style="background:var(--color-accent)"></span> Start building</div>
+              <div class="legend-row"><span class="swatch" style="background:var(--map-node-target)"></span> Destination building</div>
+              <div class="legend-row"><span class="swatch" style="background:var(--color-primary-soft); border-color:var(--color-primary)"></span> Explored node</div>
+              <div class="legend-row"><span class="swatch swatch--line" style="background:var(--map-route)"></span> Selected route</div>
+              <div class="legend-row"><span class="swatch swatch--dash"></span> Walkway with steps</div>
+              <div class="legend-row"><span class="swatch swatch--closed"></span> Closed walkway</div>
+            </div>
+          </details>
+
+          <div class="closed-controls">
+            <label class="sr-only" for="closedEdge">Choose a walkway to close for repairs</label>
+            <select id="closedEdge"></select>
+            <button type="button" class="btn" id="btnClose">Close walkway</button>
+            <button type="button" class="btn btn--ghost" id="btnReopen">Reopen all</button>
+          </div>
+          <div class="closed-list" id="closedChips" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- ---------- insights panel ---------- -->
+      <aside class="panel" aria-labelledby="insightsTitle">
+        <div class="panel__header">
+          <h2 class="panel__title" id="insightsTitle">Route Insights</h2>
+        </div>
+
+        <div class="panel__body">
+          <!-- Section A: Route Setup -->
+          <section aria-labelledby="setupTitle">
+            <h3 class="panel__title" id="setupTitle" style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-text-muted)">Route Setup</h3>
+            <div class="panel__body" style="padding:0; margin-top:var(--space-3); gap:var(--space-3)">
+              <div class="sel-grid">
+                <div class="sel-box">
+                  <span class="k" id="lblStart">Start</span>
+                  <span class="v is-placeholder" id="selSource" aria-labelledby="lblStart">Click the map…</span>
+                </div>
+                <div class="sel-box">
+                  <span class="k" id="lblDest">Destination</span>
+                  <span class="v is-placeholder" id="selTarget" aria-labelledby="lblDest">—</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="profile-toggle" role="radiogroup" aria-label="Route profile">
+                  <button type="button" class="mode-btn btn" data-profile="standard" aria-checked="true" role="radio">
+                    Standard route
+                  </button>
+                  <button type="button" class="mode-btn btn" data-profile="wheelchair" aria-checked="false" role="radio">
+                    Step-free route
+                  </button>
+                  <p class="profile-note" id="profileNote" style="grid-column:1/-1"></p>
+                </div>
+              </div>
+
+              <div class="btn-row" style="display:flex; gap:var(--space-2)">
+                <button type="button" class="btn btn--primary" id="btnFind" disabled>Compare algorithms</button>
+                <button type="button" class="btn btn--ghost" id="btnReset">Reset</button>
+              </div>
+
+              <div id="alertBox" hidden role="alert"></div>
+            </div>
+          </section>
+
+          <!-- Section B: Algorithm Comparison -->
+          <section aria-labelledby="algoTitle" hidden id="results">
+            <h3 class="panel__title" id="algoTitle" style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-text-muted)">Algorithm Comparison</h3>
+            <ul class="algo-list" id="algoList" role="radiogroup" aria-label="Select displayed algorithm" style="margin-top:var(--space-3)"></ul>
+            <p style="font-size:0.78rem; color:var(--color-text-muted); margin-top:var(--space-2)">
+              “Nodes explored” counts buildings the algorithm examined. “Compute time” is the
+              algorithm's own runtime — the on-map animation is a replay, not a benchmark.
+            </p>
+          </section>
+
+          <!-- Section C: Directions -->
+          <section aria-labelledby="dirTitle" hidden id="directionsSection">
+            <details class="steps-detail" id="directionsDetail" open>
+              <summary id="dirTitle">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 8l6-6 6 6-6 6z" transform="rotate(45 8 8)" />
+                  <path d="M6.5 9.5v-2h3" />
+                </svg>
+                Turn-by-turn directions
+              </summary>
+              <ol class="steps-list" id="directions"></ol>
+            </details>
+          </section>
+
+          <!-- Section D: Route Summary -->
+          <section aria-labelledby="summaryTitle" hidden id="summarySection">
+            <h3 class="panel__title" id="summaryTitle" style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--color-text-muted)">Route Summary</h3>
+            <dl class="summary-grid" id="summaryGrid" style="margin-top:var(--space-3)"></dl>
+            <p class="why-route" id="whyRoute" style="margin-top:var(--space-3)"></p>
+          </section>
+
+          <div id="live" class="sr-only" aria-live="polite"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    CampusWay · Graphs, Min-Heap, Dijkstra, BFS &amp; A* · built with vanilla JavaScript —
+    <span id="algoMeta"></span>
+  </footer>
+
+  <!-- ==================== About Algorithms dialog ==================== -->
+  <dialog class="dialog" id="aboutDialog" aria-labelledby="aboutTitle">
+    <div class="dialog__header">
+      <h2 id="aboutTitle">About the algorithms</h2>
+      <span style="margin-left:auto"></span>
+      <button type="button" class="btn btn--icon btn--ghost" id="btnAboutClose" aria-label="Close dialog">
+        <svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 4l8 8M12 4l-8 8" />
+        </svg>
+      </button>
+    </div>
+    <div class="dialog__body">
+      <h3>Dijkstra's algorithm — “reliable shortest route”</h3>
+      <p>
+        Expands outward from the start, always settling the closest unsettled building first.
+        Because every walkway has a positive length, the first time Dijkstra reaches a building
+        it has found the shortest walk there. <strong>Best when:</strong> you need the guaranteed
+        shortest distance on a weighted graph.
+      </p>
+      <h3>Breadth-First Search — “fewest buildings passed”</h3>
+      <p>
+        Explores level by level with a plain first-in-first-out queue, ignoring walkway lengths.
+        It finds the route through the <strong>fewest edges</strong>, which is a different goal —
+        that route can be longer in metres.
+      </p>
+      <h3>A* search — “goal-directed Dijkstra”</h3>
+      <p>
+        Dijkstra plus a heuristic: straight-line distance to the destination. The estimate never
+        overestimates the true remaining walk, so A* keeps Dijkstra's guarantee while usually
+        exploring fewer buildings. <strong>Note:</strong> A* is only as efficient as its heuristic
+        — a poor one collapses it back toward plain Dijkstra.
+      </p>
+      <h3>Data structures used</h3>
+      <ul>
+        <li><strong>Adjacency list</strong> — the campus graph (<code>Map&lt;building, walkways[]&gt;</code>)</li>
+        <li><strong>Binary min-heap</strong> — priority queue for Dijkstra and A* (written from scratch)</li>
+        <li><strong>FIFO queue</strong> — BFS frontier</li>
+        <li><strong>Visited/settled set</strong> &amp; <strong>parent map</strong> — route reconstruction</li>
+      </ul>
+      <h3>Complexity summary</h3>
+      <ul>
+        <li>Dijkstra: <code>O((V+E) log V)</code> with the min-heap</li>
+        <li>BFS: <code>O(V + E)</code></li>
+        <li>A*: <code>O((V+E) log V)</code>, fewer expansions with an admissible heuristic</li>
+      </ul>
+    </div>
+  </dialog>
+
+  <!-- Load order matters: heap -> graph -> algorithms -> map -> directions -> ui -> app -->
+  <script src="js/heap.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/algorithms.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/directions.js"></script>
+  <script src="js/ui/formatters.js"></script>
+  <script src="js/ui/dialog.js"></script>
+  <script src="js/ui/theme.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
