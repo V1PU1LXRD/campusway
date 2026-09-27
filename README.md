@@ -8,6 +8,8 @@ Pick any two buildings on the map and watch **Dijkstra** (with a hand-written bi
 
 > Built as a Data Structures & Algorithms mini project using **vanilla HTML, CSS and JavaScript only** — no frameworks, no build step, no paid APIs, no API keys.
 
+**🔴 Live demo:** [v1pu1lxrd.github.io/campusway](https://v1pu1lxrd.github.io/campusway/) — hosted free on GitHub Pages.
+
 ---
 
 ## ✨ Features
