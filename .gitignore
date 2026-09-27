@@ -1,0 +1,15 @@
+# Dependencies (project is dependency-free, but keep the tree clean)
+node_modules/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
