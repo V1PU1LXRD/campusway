@@ -1,0 +1,9 @@
+{
+  "name": "campusway",
+  "version": "1.0.0",
+  "description": "Campus route finder using Graphs, Min-Heap, Dijkstra, BFS and A* — vanilla JS, zero dependencies.",
+  "private": true,
+  "scripts": {
+    "test": "node tests/run-tests.js"
+  }
+}
