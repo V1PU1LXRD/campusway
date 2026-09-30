@@ -138,30 +138,33 @@ class Graph {
 
 /**
  * The campus itself — a fictional-but-realistic college campus laid out on a
- * 1000x700 canvas (same coordinate space as our SVG map).
- * Weight = walking distance in metres.
+ * SQUARE 760x760 canvas so the map stays large and readable on portrait
+ * phone screens (a wide canvas gets compressed to a thin strip there).
+ * Districts run south (arrival) to north (campus edge), like a real map.
+ * Weight = walking distance in metres (kept >= straight-line distance so
+ * A*'s Euclidean heuristic remains admissible).
  */
 function buildCampusGraph() {
   const g = new Graph();
 
   // id, display name, x, y
   const N = [
-    ['gate',      'Main Gate',        60,  620],
-    ['security',  'Security Office', 170,  600],
-    ['canteen',   'Canteen',          300, 640],
-    ['admin',     'Admin Block',      190,  460],
-    ['library',   'Library',          350,  470],
-    ['fountain',  'Fountain Plaza',   480,  560],
-    ['auditorium','Auditorium',       620,  620],
-    ['lab1',      'Computer Lab 1',   480,  380],
-    ['lab2',      'Computer Lab 2',   620,  360],
-    ['cs',        'CS Department',    760,  430],
-    ['ec',        'EC Department',    860,  320],
-    ['workshop',  'Workshop',         740,  250],
-    ['sports',    'Sports Complex',   900,  560],
-    ['hostel',    'Hostel Circle',    140,  260],
-    ['garden',    'Botanical Garden', 330,  250],
-    ['temple',    'Campus Temple',    520,  180],
+    ['gate',       'Main Gate',        80, 690],
+    ['security',   'Security Office', 120, 540],
+    ['canteen',    'Canteen',          380, 700],
+    ['admin',      'Admin Block',      330, 530],
+    ['library',    'Library',          560, 500],
+    ['fountain',   'Fountain Plaza',   350, 360],
+    ['auditorium', 'Auditorium',       680, 690],
+    ['lab1',       'Computer Lab 1',   580, 350],
+    ['lab2',       'Computer Lab 2',   380, 185],
+    ['cs',         'CS Department',    650, 185],
+    ['ec',         'EC Department',    670,  60],
+    ['workshop',   'Workshop',         430,  70],
+    ['sports',     'Sports Complex',   710, 470],
+    ['hostel',     'Hostel Circle',     90, 360],
+    ['garden',     'Botanical Garden', 110, 190],
+    ['temple',     'Campus Temple',    150,  70],
   ];
 
   for (const [id, name, x, y] of N) g.addNode(id, name, x, y);
@@ -169,28 +172,28 @@ function buildCampusGraph() {
   // Walkways: [a, b, metres, hasSteps?]  (hasSteps: true = stairs or steep
   // ramp — these are avoided when the user picks the step-free profile)
   const E = [
-    ['gate', 'security', 120],
-    ['security', 'admin', 150],
-    ['security', 'canteen', 140],
-    ['canteen', 'fountain', 200],
-    ['admin', 'library', 165],
-    ['library', 'lab1', 160],
-    ['library', 'fountain', 170],
-    ['fountain', 'auditorium', 160],
-    ['fountain', 'lab1', 190],
-    ['lab1', 'lab2', 145],
-    ['lab2', 'cs', 160],
-    ['cs', 'ec', 150, true],
-    ['cs', 'workshop', 190],
-    ['workshop', 'temple', 235, true],
-    ['ec', 'sports', 260],
-    ['auditorium', 'sports', 290],
-    ['admin', 'hostel', 240],
-    ['hostel', 'garden', 200],
-    ['garden', 'lab1', 200],
-    ['garden', 'temple', 210],
-    ['canteen', 'auditorium', 330],
-    ['hostel', 'security', 350],
+    ['gate', 'security', 170],
+    ['security', 'admin', 230],
+    ['security', 'canteen', 330],
+    ['canteen', 'fountain', 360],
+    ['admin', 'library', 250],
+    ['library', 'lab1', 170],
+    ['library', 'fountain', 270],
+    ['fountain', 'auditorium', 490],
+    ['fountain', 'lab1', 250],
+    ['lab1', 'lab2', 280],
+    ['lab2', 'cs', 290],
+    ['cs', 'ec', 145, true],
+    ['cs', 'workshop', 270],
+    ['workshop', 'temple', 300, true],
+    ['ec', 'sports', 435],
+    ['auditorium', 'sports', 240],
+    ['admin', 'hostel', 315],
+    ['hostel', 'garden', 185],
+    ['garden', 'lab1', 520],
+    ['garden', 'temple', 145],
+    ['canteen', 'auditorium', 320],
+    ['hostel', 'security', 200],
   ];
 
   for (const [a, b, w, steps] of E) g.addEdge(a, b, w, { steps });

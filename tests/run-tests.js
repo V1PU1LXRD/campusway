@@ -165,9 +165,9 @@ console.log('\nPathfinding:');
 test('dijkstra finds known shortest route gate->cs', () => {
   const g = buildCampusGraph();
   const r = dijkstra(g, 'gate', 'cs');
-  // Known optimum: gate->security->admin->library->lab1->lab2->cs
-  // = 120+150+165+160+145+160 = 900
-  assert(r.distance === 900, `expected 900, got ${r.distance}`);
+  // Known optimum (square layout): gate->security->hostel->garden->temple
+  //   ->workshop->cs = 170+200+185+145+300+270 = 1270
+  assert(r.distance === 1270, `expected 1270, got ${r.distance}`);
   assert(r.path[0] === 'gate' && r.path[r.path.length - 1] === 'cs', 'path endpoints wrong');
   assertClose(pathDistance(g, r.path), r.distance, 0.001, 'distance should match path');
 });
@@ -230,14 +230,16 @@ test('returns no route for disconnected nodes', () => {
 test('reroutes around a blocked walkway', () => {
   const g = buildCampusGraph();
   const before = dijkstra(g, 'gate', 'cs').distance;
-  g.closeEdge('lab2', 'cs'); // blocks the last hop of the optimal route
+  // workshop-cs is the final hop of the known optimal route — block it.
+  g.closeEdge('workshop', 'cs');
   const after = dijkstra(g, 'gate', 'cs').distance;
   assert(after > before, `reroute should be longer: before=${before}, after=${after}`);
   // Verify the blocked edge is genuinely not used.
-  for (let i = 0; i < dijkstra(g, 'gate', 'cs').path.length - 1; i++) {
-    const a = dijkstra(g, 'gate', 'cs').path[i];
-    const b = dijkstra(g, 'gate', 'cs').path[i + 1];
-    assert(!(a === 'lab2' && b === 'cs'), 'route must not use closed edge');
+  const r = dijkstra(g, 'gate', 'cs');
+  for (let i = 0; i < r.path.length - 1; i++) {
+    const a = r.path[i];
+    const b = r.path[i + 1];
+    assert(!(a === 'workshop' && b === 'cs'), 'route must not use closed edge');
   }
 });
 
@@ -334,19 +336,20 @@ test('flags exactly 2 walkways as stepped', () => {
 
 test('standard mode still allows stepped walkways', () => {
   const g = buildCampusGraph();
-  // temple -> workshop (steps) -> cs -> ec = 235 + 190 + 150 = 575
+  // temple -> workshop (steps) -> cs -> ec = 300 + 270 + 145 = 715
   const r = dijkstra(g, 'temple', 'ec');
-  assert(r.distance === 575, `expected 575 via stepped route, got ${r.distance}`);
+  assert(r.distance === 715, `expected 715 via stepped route, got ${r.distance}`);
 });
 
 test('wheelchair mode reroutes around steps at a higher cost', () => {
   const g = buildCampusGraph();
   const r = dijkstra(g, 'temple', 'ec', 'wheelchair');
-  // Removing cs-ec (steps) leaves EC reachable ONLY via the Sports Complex:
-  // temple -> garden -> lab1 -> fountain -> auditorium -> sports -> ec
-  //   = 210 + 200 + 190 + 160 + 290 + 260 = 1310
-  assert(r.distance === 1310, `expected 1310 step-free, got ${r.distance}`);
-  assert(r.distance > 575, 'step-free route should be longer than the stepped one');
+  // With cs-ec and workshop-temple (both stepped) excluded, EC is only
+  // reachable via the Sports Complex:
+  //   temple -> garden -> hostel -> security -> canteen -> auditorium
+  //   -> sports -> ec = 145+185+200+330+320+240+435 = 1855
+  assert(r.distance === 1855, `expected 1855 step-free, got ${r.distance}`);
+  assert(r.distance > 715, 'step-free route should be longer than the stepped one');
   const tail = r.path.slice(-3);
   assert(
     tail[0] === 'auditorium' && tail[1] === 'sports' && tail[2] === 'ec',
@@ -371,7 +374,7 @@ test('wheelchair routes never use stepped walkways (all algorithms)', () => {
 
 test('pathDistance rejects stepped hops in wheelchair mode', () => {
   const g = buildCampusGraph();
-  assert(pathDistance(g, ['cs', 'ec']) === 150, 'standard mode should allow the hop');
+  assert(pathDistance(g, ['cs', 'ec']) === 145, 'standard mode should allow the hop');
   assert(pathDistance(g, ['cs', 'ec'], 'wheelchair') === null, 'wheelchair mode must reject the stepped hop');
 });
 

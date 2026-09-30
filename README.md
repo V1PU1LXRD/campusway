@@ -108,7 +108,7 @@ npm test          # or: node tests/run-tests.js
 1. *"This is CampusWay — it answers one question: what's the fastest walk across campus?"* → click Main Gate, then CS Department.
 2. *"The rings show Dijkstra expanding the graph — every node lights up in the exact order the algorithm visited it."*
 3. *"The comparison table shows all three algorithms on the same problem: Dijkstra guarantees the shortest distance, A\* reaches the same answer but explores fewer nodes thanks to its straight-line heuristic, and BFS just minimizes the number of buildings passed."*
-4. *"Now the fun part — the walkway outside the library is closed for repairs."* → close Library ↔ Computer Lab 1 → *"and the app reroutes around it automatically."*
+4. *"Now the fun part — the final walkway into the CS Department is closed for repairs."* → close Workshop ↔ CS Department → *"and the app reroutes around it automatically."*
 5. *"Under the hood it's a hand-built adjacency-list graph, a binary min-heap written from scratch, and 35 passing tests."*
 6. *"One more thing — accessibility."* → switch to ♿ Step-free → *"the same algorithms now run on a subgraph without stairs: no extra code, just a filtered graph. Try it with the Sports Complex walkway closed and there's no step-free route at all."*
 

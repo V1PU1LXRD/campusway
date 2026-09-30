@@ -1,12 +1,19 @@
 /**
  * map.js — renders the campus as an interactive SVG.
  *
+ * Canvas: SQUARE 760x760. A square keeps the map large and readable on
+ * portrait phone screens (a wide canvas gets compressed into a thin strip),
+ * while still filling a desktop panel nicely.
+ *
  * Layer order (bottom -> top), so effects never hide clickable nodes:
- *   1. decorative background blobs
+ *   1. cartography: blueprint grid, district tint blobs, north arrow, scale bar
  *   2. walkway lines (edges)
  *   3. route highlight path
  *   4. visit-effect rings
- *   5. building dots + labels (topmost = always clickable)
+ *   5. building dots + LABEL CHIPS (topmost = always clickable)
+ *
+ * Labels are opaque chips (rounded rect + text): text never blends into
+ * walkway lines, in either theme, at any screen size.
  *
  * Accessibility: every building is a focusable <g role="button"> with an
  * aria-label, operable by mouse, touch, Enter and Space.
@@ -14,34 +21,35 @@
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const CAMPUS_MAP = {
-  viewBox: '0 0 1000 700',
+  viewBox: '0 0 760 760',
+  gridStep: 76, // 10x10 blueprint grid
+  // decorative "green zones" so it feels like a campus, not a spreadsheet
   backgroundBlobs: [
-    // purely decorative "green zones" so it feels like a campus, not a spreadsheet
-    { cx: 300, cy: 230, rx: 170, ry: 115, fill: 'rgba(52, 211, 153, 0.06)' },
-    { cx: 760, cy: 300, rx: 150, ry: 120, fill: 'rgba(139, 92, 246, 0.06)' },
-    { cx: 520, cy: 560, rx: 190, ry: 110, fill: 'rgba(77, 163, 255, 0.05)' },
+    { cx: 180, cy: 200, rx: 150, ry: 120 },
+    { cx: 560, cy: 160, rx: 140, ry: 110 },
+    { cx: 420, cy: 560, rx: 190, ry: 130 },
   ],
 };
+
+// metres represented by one SVG unit — drives the scale bar
+const METRES_PER_UNIT = 1;
 
 class CampusMap {
   /**
    * @param {HTMLElement} container       element to hold the <svg>
    * @param {Graph} graph                 campus graph
    * @param {(nodeId: string) => void} onNodeClick  building activation handler
-   * @param {(nodeId: string) => void} [onVisit]     called when a node is visited (for ARIA status)
+   * @param {(nodeId: string) => void} [onVisit]    called when a node is visited (for ARIA status)
    */
   constructor(container, graph, onNodeClick, onVisit = null) {
     this.container = container;
     this.graph = graph;
     this.onNodeClick = onNodeClick;
     this.onVisit = onVisit;
-    this.visitColor = null; // set per algorithm by app.js; null = theme color
-    this.container = container;
-    this.graph = graph;
-    this.onNodeClick = onNodeClick;
     this.edgeEls = new Map(); // "a|b" (sorted) -> <line>
     this.nodeEls = new Map(); // nodeId -> <g>
     this.layers = {};
+    this.visitColor = null;   // set per algorithm by app.js; null = theme color
     this._build();
   }
 
@@ -63,7 +71,43 @@ class CampusMap {
     // to this SVG without reaching into the DOM.
     this.svg = svg;
 
-    // arrowhead for the final route (restrained direction cue)
+    /* ----- 1a. blueprint grid ----- */
+    const grid = this._el('g', { class: 'map-grid', 'aria-hidden': 'true' });
+    for (let i = CAMPUS_MAP.gridStep; i < 760; i += CAMPUS_MAP.gridStep) {
+      grid.appendChild(this._el('line', { x1: i, y1: 0, x2: i, y2: 760 }));
+      grid.appendChild(this._el('line', { x1: 0, y1: i, x2: 760, y2: i }));
+    }
+    svg.appendChild(grid);
+
+    /* ----- 1b. district tint blobs ----- */
+    const bg = this._el('g', { 'aria-hidden': 'true' });
+    for (const b of CAMPUS_MAP.backgroundBlobs) {
+      bg.appendChild(this._el('ellipse', { cx: b.cx, cy: b.cy, rx: b.rx, ry: b.ry, class: 'map-blob' }));
+    }
+    svg.appendChild(bg);
+
+    /* ----- 1c. north arrow + scale bar (decorative cartography) ----- */
+    const compass = this._el('g', { class: 'map-compass', 'aria-hidden': 'true' });
+    compass.appendChild(this._el('circle', { cx: 712, cy: 52, r: 24, class: 'compass-ring' }));
+    compass.appendChild(this._el('path', { d: 'M712 34 L720 62 L712 55 L704 62 Z', class: 'compass-north' }));
+    const nLabel = this._el('text', { x: 712, y: 94, class: 'compass-label' });
+    nLabel.textContent = 'N';
+    compass.appendChild(nLabel);
+    svg.appendChild(compass);
+
+    // Scale bar lives top-left: the bottom edge holds building chips
+    // (Main Gate, Canteen, Auditorium), the top-left only has room to spare.
+    const scale = this._el('g', { class: 'map-scale', 'aria-hidden': 'true' });
+    scale.appendChild(this._el('line', { x1: 28, y1: 44, x2: 178, y2: 44, class: 'scale-line' }));
+    scale.appendChild(this._el('line', { x1: 28, y1: 38, x2: 28, y2: 50, class: 'scale-line' }));
+    scale.appendChild(this._el('line', { x1: 103, y1: 40, x2: 103, y2: 48, class: 'scale-line' }));
+    scale.appendChild(this._el('line', { x1: 178, y1: 38, x2: 178, y2: 50, class: 'scale-line' }));
+    const scaleLabel = this._el('text', { x: 103, y: 66, class: 'scale-label' });
+    scaleLabel.textContent = `${150 * METRES_PER_UNIT} m`;
+    scale.appendChild(scaleLabel);
+    svg.appendChild(scale);
+
+    /* ----- arrowhead for the final route ----- */
     const defs = this._el('defs', {});
     const marker = this._el('marker', {
       id: 'route-arrow',
@@ -78,14 +122,7 @@ class CampusMap {
     defs.appendChild(marker);
     svg.appendChild(defs);
 
-    // 1. background blobs
-    const bg = this._el('g', { 'aria-hidden': 'true' });
-    for (const b of CAMPUS_MAP.backgroundBlobs) {
-      bg.appendChild(this._el('ellipse', { cx: b.cx, cy: b.cy, rx: b.rx, ry: b.ry, fill: b.fill }));
-    }
-    svg.appendChild(bg);
-
-    // 2. edges (each undirected walkway drawn once)
+    /* ----- 2. edges (each undirected walkway drawn once) ----- */
     const gEdges = this._el('g', { 'aria-hidden': 'true' });
     const seen = new Set();
     for (const id of this.graph.nodeIds()) {
@@ -105,13 +142,13 @@ class CampusMap {
     }
     svg.appendChild(gEdges);
 
-    // 3 + 4. route and visit layers
+    /* ----- 3 + 4. route and visit layers ----- */
     this.layers.route = this._el('path', { class: 'route-line', d: '' });
     this.layers.effects = this._el('g', { 'aria-hidden': 'true' });
     svg.appendChild(this.layers.route);
     svg.appendChild(this.layers.effects);
 
-    // 5. nodes
+    /* ----- 5. nodes with label chips ----- */
     const gNodes = this._el('g', {});
     for (const id of this.graph.nodeIds()) {
       const n = this.graph.getNode(id);
@@ -121,10 +158,18 @@ class CampusMap {
         role: 'button',
         'aria-label': `${n.name}. Activate to set as route endpoint.`,
       });
-      g.appendChild(this._el('circle', { class: 'node-halo', cx: n.x, cy: n.y, r: 30 })); // generous tap target (small screens scale the SVG down)
-      g.appendChild(this._el('circle', { class: 'node-circle', cx: n.x, cy: n.y, r: 14 }));
-      const label = this._el('text', { class: 'node-label', x: n.x, y: n.y + 34 });
+      g.appendChild(this._el('circle', { class: 'node-halo', cx: n.x, cy: n.y, r: 34 })); // generous tap target
+      g.appendChild(this._el('circle', { class: 'node-circle', cx: n.x, cy: n.y, r: 13 }));
+
+      // Opaque label chip: text never blends into walkways, in any theme.
+      // Initial size is a rough estimate; sizeChips() measures the real text.
+      const chip = this._el('rect', {
+        class: 'node-chip', rx: 8, 'aria-hidden': 'true',
+        x: n.x - 47, y: n.y + 21, width: 94, height: 30,
+      });
+      const label = this._el('text', { class: 'node-label', x: n.x, y: n.y + 36 });
       label.textContent = n.name;
+      g.appendChild(chip);
       g.appendChild(label);
 
       g.addEventListener('click', () => this.onNodeClick(id));
@@ -138,6 +183,33 @@ class CampusMap {
       gNodes.appendChild(g);
     }
     svg.appendChild(gNodes);
+
+    // Size each chip to its text once fonts are ready (re-measure on resize
+    // is unnecessary: the SVG user-unit geometry never changes).
+    const sizeChips = () => {
+      for (const g of this.nodeEls.values()) {
+        const text = g.querySelector('.node-label');
+        const chip = g.querySelector('.node-chip');
+        if (!text || !chip) continue;
+        const bbox = text.getBBox();
+        chip.setAttribute('x', bbox.x - 9);
+        chip.setAttribute('y', bbox.y - 5);
+        chip.setAttribute('width', bbox.width + 18);
+        chip.setAttribute('height', bbox.height + 10);
+      }
+    };
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(sizeChips);
+    }
+    requestAnimationFrame(sizeChips);
+
+    // Phone CSS enlarges label font at narrow viewports; re-measure chips
+    // when the breakpoint is crossed.
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(sizeChips, 150);
+    });
 
     this.container.appendChild(svg);
   }
@@ -167,8 +239,8 @@ class CampusMap {
 
   /**
    * Draw the route as a polyline through the node coordinates.
-   * Animate it "growing" with a stroke-dash transition (unless the user
-   * prefers reduced motion — CSS disables the transition there).
+   * Animate it "growing" with a stroke-dash transition unless the user
+   * prefers reduced motion (then it appears instantly).
    */
   drawRoute(path, animate = true) {
     this.clearRoute();
@@ -226,7 +298,7 @@ class CampusMap {
     const n = this.graph.getNode(nodeId);
     if (!n) return;
     if (typeof this.onVisit === 'function') this.onVisit(nodeId);
-    const ring = this._el('circle', { class: 'visit-ring', cx: n.x, cy: n.y, r: 18 });
+    const ring = this._el('circle', { class: 'visit-ring', cx: n.x, cy: n.y, r: 20 });
     if (this.visitColor) ring.style.stroke = this.visitColor;
     ring.addEventListener('animationend', () => ring.remove());
     this.layers.effects.appendChild(ring);

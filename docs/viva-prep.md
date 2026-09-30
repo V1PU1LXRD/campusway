@@ -38,7 +38,7 @@ At each junction I take the incoming and outgoing direction vectors and compute 
 Each edge carries a `hasSteps` flag. `neighbours(id, mode)` filters stepped edges out when the mode is `wheelchair`, so Dijkstra, BFS and A\* run *unchanged* on a slightly smaller subgraph — one implementation serving two graphs. This is the classic "visibility/filter" pattern: change what the algorithm can see, not the algorithm.
 
 **Q12. Can step-free mode make a destination unreachable?**
-Yes — and that's a feature, not a bug. EC Department connects to the rest of campus through exactly two walkways; one has steps, so in step-free mode it's only reachable via the Sports Complex (1,310 m instead of 575 m). Close the Sports Complex walkway too and there is *no step-free route at all* — the app reports that honestly instead of pretending. A test asserts exactly this.
+Yes — and that's a feature, not a bug. EC Department connects to the rest of campus through exactly two walkways; one has steps, so in step-free mode it's only reachable via the Sports Complex (1,855 m instead of 715 m — nearly triple). Close the Sports Complex walkway too and there is *no step-free route at all* — the app reports that honestly instead of pretending. A test asserts exactly this.
 
 ---
 

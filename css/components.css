@@ -284,6 +284,20 @@
   padding: var(--space-3);
 }
 
+/* ----- cartography: grid, district tints, compass, scale bar ----- */
+.map-grid line { stroke: var(--map-grid); stroke-width: 1; }
+.map-blob { fill: var(--map-blob); }
+.compass-ring { fill: none; stroke: var(--map-chip-stroke); stroke-width: 2; }
+.compass-north { fill: var(--map-node-stroke); }
+.compass-label,
+.scale-label {
+  fill: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+.scale-line { stroke: var(--color-text-muted); stroke-width: 2; }
+
 #map {
   width: 100%;
   height: auto;
@@ -354,15 +368,18 @@
 .node.is-source .node-circle { fill: var(--color-accent); stroke: var(--map-node-source-stroke); }
 .node.is-target .node-circle { fill: var(--map-node-target); stroke: var(--map-node-target-stroke); }
 
+/* labels sit on opaque chips — no halo needed, crisp in both themes */
 .node-label {
   fill: var(--color-text);
   font-size: 15px;
-  font-weight: 600;
-  paint-order: stroke;
-  stroke: var(--map-label-halo); /* theme-aware: light halo on light map, dark on dark */
-  stroke-width: 3px;
+  font-weight: 650;
   pointer-events: none;
   text-anchor: middle;
+}
+.node-chip {
+  fill: var(--map-chip-fill);
+  stroke: var(--map-chip-stroke);
+  stroke-width: 2;
 }
 
 /* ---------------- 7. legend popover ---------------- */
@@ -756,12 +773,17 @@ details.steps-detail[open] summary::after { transform: rotate(225deg); }
   .site-header__actions .btn span { display: none; }
   .site-header__actions .btn { padding: 8px; width: 36px; height: 36px; }
 
-  /* map: larger in-SVG labels so they stay readable when scaled down */
+  /* map: larger in-SVG text/chips so they stay readable when scaled down.
+     (The SVG user-unit geometry never changes; these compensate for the
+     smaller on-screen scale of a phone viewport.) */
   .map-frame { padding: var(--space-2); }
-  #map { overflow: visible; }                    /* edge labels may spill a few px into the frame padding */
-  .node-label { font-size: 34px; stroke-width: 5px; }
+  #map { overflow: visible; }
+  .node-label { font-size: 34px; }
+  .node-chip { stroke-width: 3; }
   .node-circle { r: 18; }
-  .node-halo { r: 36; }
+  .node-halo { r: 40; }
+  .compass-label, .scale-label { font-size: 30px; }
+  .map-grid line { stroke-width: 2; }
 
   /* 16px controls prevent iOS Safari focus zoom */
   .closed-controls select { font-size: 16px; }

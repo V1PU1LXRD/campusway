@@ -41,6 +41,10 @@
   /* ----- color: map tokens ----- */
   --map-bg-1: #eef3f9;
   --map-bg-2: #e6edf6;
+  --map-grid: rgba(19, 42, 69, 0.06);      /* blueprint grid lines */
+  --map-blob: rgba(47, 109, 179, 0.05);    /* district tint */
+  --map-chip-fill: rgba(255, 255, 255, 0.94);   /* label chip plate */
+  --map-chip-stroke: #b9c6d8;
   --map-edge: #c2cfe0;
   --map-edge-steps: #d97706;   /* dashed pattern = the real cue, not hue */
   --map-edge-closed: #c04444;  /* different dash pattern again */
@@ -51,7 +55,6 @@
   --map-node-target-stroke: #8f2f2f;
   --map-node-source-stroke: #0b6b4e;
   --map-route: #2f6db3;
-  --map-label-halo: rgba(245, 247, 250, 0.9); /* halo behind label text (light) */
   --visit-color: #2f6db3;      /* fallback; app.js picks per algorithm */
   --visit-dijkstra: #2f6db3;
   --visit-astar: #7c5cd6;
@@ -131,6 +134,10 @@
   /* map */
   --map-bg-1: #131b2e;
   --map-bg-2: #0e1524;
+  --map-grid: rgba(232, 237, 247, 0.05);
+  --map-blob: rgba(91, 155, 217, 0.07);
+  --map-chip-fill: rgba(23, 31, 48, 0.94);
+  --map-chip-stroke: #3d4c6e;
   --map-edge: #33415f;
   --map-node-fill: #24314e;
   --map-node-stroke: #44557d;
@@ -139,7 +146,6 @@
   --map-node-target-stroke: #f2b8b8;
   --map-node-source-stroke: #7fe3bd;
   --map-route: #5b9bd9;
-  --map-label-halo: rgba(15, 20, 32, 0.92);  /* dark halo behind light text */
   --visit-dijkstra: #5b9bd9;
   --visit-astar: #a78bfa;
   --visit-bfs: #3fce9d;
