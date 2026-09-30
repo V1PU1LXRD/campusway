@@ -741,7 +741,7 @@ details.steps-detail[open] summary::after { transform: rotate(225deg); }
 }
 
 /* ---------------- 15. responsive: 320px -> desktop ----------------
-   The SVG viewBox is 1000x700 user units, so on small screens everything
+   The SVG viewBox is 760x760 user units, so on small screens everything
    inside it (labels included) scales down. These rules compensate: bigger
    in-SVG text, slight overflow allowance absorbed by frame padding, and
    16px form controls to stop iOS zoom-on-focus. */
